@@ -126,10 +126,10 @@ function selectApp(appName) {
   });
 
   // Render header
-  const iconUrl = app.icon || 'https://cdn.simpleicons.org/settings';
+  const iconUrl = app.icon || '../img/icon_256.png';
   els.settingsHeader.innerHTML = `
     <div class="active-app-header">
-      <img src="${iconUrl}" onerror="this.src='https://cdn.simpleicons.org/settings'" />
+      <img src="${iconUrl}" onerror="this.onerror=null; this.src='../img/icon_256.png';" />
       <h2>${escapeHtml(app.app)} Settings</h2>
     </div>
   `;
