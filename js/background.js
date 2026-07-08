@@ -134,8 +134,23 @@ function updateSettingsValues(appName, patch) {
 
   console.log(`[settings-manager] updated values for "${appName}":`, patch);
 
+  if (patch.autoLaunch !== undefined) {
+    setAppAutoStart(appName, patch.autoLaunch);
+  }
+
   // Notify settings_ui window if open
   overwolf.windows.sendMessage('settings_ui', 'values-changed', { app: appName, values: app.values }, () => {});
+}
+
+function setAppAutoStart(appName, enabled) {
+  overwolf.extensions.getExtensions((r) => {
+    if (!r || !r.extensions) return;
+    const ext = r.extensions.find(e => e.meta && (e.meta.name === appName || (appName === 'Warzone Helper' && e.meta.name === 'Game Helper')));
+    if (ext) {
+      console.log(`[settings-manager] Sending set-autostart (${enabled}) command to ${appName}`);
+      overwolf.windows.sendMessage(ext.id, 'set-autostart', { enabled }, () => {});
+    }
+  });
 }
 
 function handleLaunch(info) {
@@ -156,10 +171,78 @@ function handleLaunch(info) {
   });
 }
 
+// Monitor game launches/exits centrally
+overwolf.games.onGameInfoUpdated.addListener((info) => {
+  if (!info) return;
+  const isRunning = info.isRunning;
+  const gameChanged = info.runningChanged;
+  
+  if (gameChanged) {
+    if (isRunning) {
+      console.log('[settings-manager] Game launched. Starting enabled apps...');
+      Object.keys(state.apps).forEach(appName => {
+        const app = state.apps[appName];
+        if (app.values && app.values.autoLaunch !== false) {
+          launchAppByName(appName);
+        }
+      });
+    } else {
+      console.log('[settings-manager] Game exited. Shutting down apps with closeOnGameExit enabled...');
+      Object.keys(state.apps).forEach(appName => {
+        const app = state.apps[appName];
+        if (app.values && app.values.closeOnGameExit === true) {
+          shutdownAppByName(appName);
+        }
+      });
+    }
+  }
+});
+
+function launchAppByName(name) {
+  overwolf.extensions.getExtensions((r) => {
+    if (!r || !r.extensions) return;
+    const ext = r.extensions.find(e => e.meta && (e.meta.name === name || (name === 'Warzone Helper' && e.meta.name === 'Game Helper')));
+    if (ext) {
+      overwolf.extensions.getRunningState(ext.id, (stateRes) => {
+        if (stateRes && !stateRes.isRunning) {
+          console.log(`[settings-manager] Auto-launching ${name}`);
+          overwolf.extensions.launch(ext.id, { background: true });
+        }
+      });
+    }
+  });
+}
+
+function shutdownAppByName(name) {
+  overwolf.extensions.getExtensions((r) => {
+    if (!r || !r.extensions) return;
+    const ext = r.extensions.find(e => e.meta && (e.meta.name === name || (name === 'Warzone Helper' && e.meta.name === 'Game Helper')));
+    if (ext) {
+      console.log(`[settings-manager] Sending shutdown command to ${name}`);
+      overwolf.windows.sendMessage(ext.id, 'shutdown-app', {}, () => {});
+    }
+  });
+}
+
 function main() {
   loadState();
   startServer();
   try { overwolf.extensions.setInfo(state.apps); } catch (e) {}
+
+  // Auto-start Notifications service on Settings Manager startup
+  overwolf.extensions.getExtensions((r) => {
+    if (r && r.extensions) {
+      const notif = r.extensions.find(e => e.meta && e.meta.name === 'Notifications');
+      if (notif) {
+        overwolf.extensions.getRunningState(notif.id, (stateRes) => {
+          if (stateRes && !stateRes.isRunning) {
+            console.log('[settings-manager] Auto-launching Notifications service');
+            overwolf.extensions.launch(notif.id, { background: true });
+          }
+        });
+      }
+    }
+  });
 
   overwolf.extensions.onAppLaunchTriggered.removeListener(handleLaunch);
   overwolf.extensions.onAppLaunchTriggered.addListener(handleLaunch);
