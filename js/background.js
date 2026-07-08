@@ -29,6 +29,8 @@ function loadState() {
 function saveState() {
   try {
     localStorage.setItem('sm_apps_state', JSON.stringify(state.apps));
+    // Broadcast via Overwolf extensions registry
+    overwolf.extensions.setInfo(state.apps);
   } catch (e) {
     console.error('[settings-manager] failed to save state:', e);
   }
@@ -139,6 +141,7 @@ function updateSettingsValues(appName, patch) {
 function main() {
   loadState();
   startServer();
+  try { overwolf.extensions.setInfo(state.apps); } catch (e) {}
 
   // Open the settings UI once on launch
   overwolf.windows.obtainDeclaredWindow('settings_ui', (r) => {
