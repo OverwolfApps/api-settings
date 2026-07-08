@@ -1,0 +1,42 @@
+{
+  "manifest_version": 1,
+  "type": "WebApp",
+  "meta": {
+    "name": "Settings Manager",
+    "author": "Bluscream",
+    "version": "1.0.0",
+    "minimum-overwolf-version": "0.200.0",
+    "description": "A centralized Overwolf settings manager. Allows other apps to register settings schemas, retrieve values, and receive real-time edits via WebSocket.",
+    "icon": "img/icon_256.png",
+    "icon_gray": "img/icon_gray_256.png",
+    "launcher_icon": "img/icon.ico"
+  },
+  "permissions": [
+    "GameInfo",
+    "Web",
+    "Tray"
+  ],
+  "data": {
+    "start_window": "background",
+    "windows": {
+      "background": {
+        "file": "windows/background.html",
+        "is_background_page": true,
+        "show_in_taskbar": false
+      },
+      "settings_ui": {
+        "file": "windows/settings.html",
+        "resizable": true,
+        "transparent": true,
+        "show_in_taskbar": true,
+        "override_on_update": true,
+        "size": { "width": 800, "height": 600 },
+        "min_size": { "width": 640, "height": 480 }
+      }
+    },
+    "game_targeting": {
+      "type": "all"
+    },
+    "force_browser": "user"
+  }
+}

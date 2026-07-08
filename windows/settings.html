@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Settings Manager</title>
+  <link rel="stylesheet" href="../css/settings.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="icon">⚙</span>
+        <span class="title">Settings Manager</span>
+      </div>
+      <div class="header-spacer"></div>
+      <button class="header-btn" id="refresh-btn" title="Refresh state">⟳</button>
+      <button class="header-btn" id="close-btn" title="Close">✕</button>
+    </header>
+
+    <div class="main-layout">
+      <!-- Left Panel: Apps List -->
+      <aside class="sidebar">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search apps..." />
+        </div>
+        <div class="apps-list" id="apps-list">
+          <!-- Dynamically populated -->
+          <div class="empty-state">No apps registered.</div>
+        </div>
+      </aside>
+
+      <!-- Right Panel: App Settings -->
+      <main class="content-area">
+        <div class="settings-header" id="settings-header">
+          <!-- Dynamically populated app title -->
+          <div class="welcome-banner">
+            <h2>Welcome to Settings Manager</h2>
+            <p>Centralized configuration dashboard for your Overwolf applications.</p>
+          </div>
+        </div>
+        
+        <div class="settings-form" id="settings-form" style="display: none;">
+          <!-- Dynamically populated settings categories -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/settings.js"></script>
+</body>
+</html>
