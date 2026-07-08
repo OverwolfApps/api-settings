@@ -94,9 +94,9 @@ function renderAppsList() {
     const el = document.createElement('div');
     el.className = 'app-item' + (currentApp === app.app ? ' active' : '');
     
-    const iconUrl = app.icon || 'https://cdn.simpleicons.org/settings';
+    const iconUrl = app.icon || '../img/icon_256.png';
     el.innerHTML = `
-      <img src="${iconUrl}" onerror="this.src='https://cdn.simpleicons.org/settings'" />
+      <img src="${iconUrl}" onerror="this.onerror=null; this.src='../img/icon_256.png';" />
       <span class="app-name">${escapeHtml(app.app)}</span>
     `;
 
