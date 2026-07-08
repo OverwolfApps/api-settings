@@ -176,10 +176,11 @@ function renderSettingsForm(app) {
           break;
 
         case 'slider':
+          const unit = s.unit || '';
           controlHtml = `
             <div class="slider-container">
               <input type="range" min="${s.min || 0}" max="${s.max || 100}" step="${s.step || 1}" value="${val}" />
-              <span class="slider-val">${val}</span>
+              <span class="slider-val">${val}${unit}</span>
             </div>`;
           break;
 
@@ -262,8 +263,9 @@ function bindControlEvents(card, s, app) {
   } else if (s.type === 'slider') {
     const range = control.querySelector('input[type="range"]');
     const valSpan = control.querySelector('.slider-val');
+    const unit = s.unit || '';
     range.oninput = () => {
-      valSpan.textContent = range.value;
+      valSpan.textContent = range.value + unit;
     };
     range.onchange = () => {
       update(parseInt(range.value, 10));
