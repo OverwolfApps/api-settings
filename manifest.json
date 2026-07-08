@@ -37,6 +37,18 @@
     "game_targeting": {
       "type": "all"
     },
-    "force_browser": "user"
+    "force_browser": "user",
+    "launch_events": [
+      {
+        "event": "LaunchWithOverwolf"
+      },
+      {
+        "event": "AllGamesLaunch",
+        "event_data": {
+          "wait_for_stable_framerate": 30
+        },
+        "start_minimized": true
+      }
+    ]
   }
 }

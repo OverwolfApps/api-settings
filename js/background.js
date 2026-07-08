@@ -138,17 +138,31 @@ function updateSettingsValues(appName, patch) {
   overwolf.windows.sendMessage('settings_ui', 'values-changed', { app: appName, values: app.values }, () => {});
 }
 
-function main() {
-  loadState();
-  startServer();
-  try { overwolf.extensions.setInfo(state.apps); } catch (e) {}
+function handleLaunch(info) {
+  console.log('[settings-manager] launch triggered:', info);
+  const isAutoLaunch = info && (info.source === 'startup' || info.source === 'gamelaunchevent');
+  const isBackgroundLaunch = info && info.parameter && info.parameter.background;
+  
+  if (isAutoLaunch || isBackgroundLaunch) {
+    console.log('[settings-manager] Launching in background/minimized (skipping UI restore).');
+    return;
+  }
 
-  // Open the settings UI once on launch
+  // Restore Settings UI on manual or normal launch
   overwolf.windows.obtainDeclaredWindow('settings_ui', (r) => {
     if (r && r.status === 'success') {
       overwolf.windows.restore(r.window.id, () => {});
     }
   });
+}
+
+function main() {
+  loadState();
+  startServer();
+  try { overwolf.extensions.setInfo(state.apps); } catch (e) {}
+
+  overwolf.extensions.onAppLaunchTriggered.removeListener(handleLaunch);
+  overwolf.extensions.onAppLaunchTriggered.addListener(handleLaunch);
 }
 
 main();
