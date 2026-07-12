@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "type": "WebApp",
   "meta": {
-    "name": "Settings Manager",
+    "name": "Settings (API)",
     "author": "Bluscream",
     "version": "1.0.0",
     "minimum-overwolf-version": "0.200.0",
@@ -14,10 +14,19 @@
   "permissions": [
     "GameInfo",
     "Web",
-    "Tray"
+    "Tray",
+    "Extensions",
+    "Hotkeys"
   ],
   "data": {
     "start_window": "background",
+    "hotkeys": {
+      "toggle_settings_ui": {
+        "title": "Toggle Settings Manager UI",
+        "action-type": "toggle",
+        "default": "Ctrl+Shift+S"
+      }
+    },
     "windows": {
       "background": {
         "file": "windows/background.html",
@@ -38,6 +47,12 @@
       "type": "all"
     },
     "force_browser": "user",
+    "extra-objects": {
+      "websocket-server-plugin": {
+        "file": "plugins/WebSocketServer.dll",
+        "class": "WebSocketServer.WebSocketServerPlugin"
+      }
+    },
     "launch_events": [
       {
         "event": "LaunchWithOverwolf"

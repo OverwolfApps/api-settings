@@ -10,6 +10,8 @@ const els = {
   appsList: document.getElementById('apps-list'),
   settingsHeader: document.getElementById('settings-header'),
   settingsForm: document.getElementById('settings-form'),
+  exportBtn: document.getElementById('export-btn'),
+  importBtn: document.getElementById('import-btn'),
 };
 
 // Resolve self window ID and bind window drag
@@ -23,6 +25,52 @@ els.closeBtn.onclick = () => {
 
 els.refreshBtn.onclick = () => {
   refreshUI();
+};
+
+els.exportBtn.onclick = () => {
+  const state = getBgState();
+  if (!state || !state.apps) return;
+  const exportData = {};
+  for (const [appName, app] of Object.entries(state.apps)) {
+    exportData[appName] = app.values;
+  }
+  const json = JSON.stringify(exportData, null, 2);
+  overwolf.utils.placeOnClipboard(json);
+  
+  const original = els.exportBtn.innerHTML;
+  els.exportBtn.innerHTML = '✅';
+  setTimeout(() => els.exportBtn.innerHTML = original, 1000);
+};
+
+els.importBtn.onclick = () => {
+  overwolf.utils.getFromClipboard((data) => {
+    try {
+      const parsed = JSON.parse(data);
+      const bg = overwolf.windows.getMainWindow();
+      if (!bg || !bg.updateSettingsValues) return;
+      
+      let importedCount = 0;
+      for (const [appName, values] of Object.entries(parsed)) {
+        if (typeof values === 'object' && !Array.isArray(values)) {
+          bg.updateSettingsValues(appName, values);
+          importedCount++;
+        }
+      }
+      
+      if (importedCount > 0) {
+        const original = els.importBtn.innerHTML;
+        els.importBtn.innerHTML = '✅';
+        setTimeout(() => els.importBtn.innerHTML = original, 1000);
+      } else {
+        throw new Error("No valid app configurations found");
+      }
+    } catch (e) {
+      console.error('Failed to import settings:', e);
+      const original = els.importBtn.innerHTML;
+      els.importBtn.innerHTML = '❌';
+      setTimeout(() => els.importBtn.innerHTML = original, 1000);
+    }
+  });
 };
 
 els.searchInput.oninput = () => {
@@ -243,17 +291,16 @@ function bindControlEvents(card, s, app) {
   const key = s.key;
 
   const update = (newVal) => {
-    app.values[key] = newVal;
-    // Call background to save and broadcast
     try {
       const bg = overwolf.windows.getMainWindow();
-      if (bg && bg.settingsState) {
-        bg.saveState();
-        // Trigger direct WebSocket or settings updates
-        overwolf.windows.sendMessage('settings_ui', 'values-changed', { app: app.app, values: app.values }, () => {});
+      if (bg && typeof bg.updateSettingsValues === 'function') {
+        bg.updateSettingsValues(app.app, { [key]: newVal });
+      } else {
+        app.values[key] = newVal;
       }
     } catch (e) {
       console.error('Failed to save updated setting:', e);
+      app.values[key] = newVal;
     }
   };
 
@@ -353,14 +400,16 @@ document.addEventListener('keydown', (e) => {
   recordingHotkeyEl = null;
 
   // Save the setting
-  app.values[key] = hotkeyStr;
   try {
     const bg = overwolf.windows.getMainWindow();
-    if (bg && bg.settingsState) {
-      bg.saveState();
-      overwolf.windows.sendMessage('settings_ui', 'values-changed', { app: app.app, values: app.values }, () => {});
+    if (bg && typeof bg.updateSettingsValues === 'function') {
+      bg.updateSettingsValues(app.app, { [key]: hotkeyStr });
+    } else {
+      app.values[key] = hotkeyStr;
     }
-  } catch (err) {}
+  } catch (err) {
+    app.values[key] = hotkeyStr;
+  }
 });
 
 // Cancel recording if clicking elsewhere
